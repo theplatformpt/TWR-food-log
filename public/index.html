@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Train With Renée Food Log</title>
+<meta name="description" content="Log what you eat, drink and how your energy feels for three days.">
+<meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#21181B" media="(prefers-color-scheme: dark)">
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="apple-mobile-web-app-title" content="Food Log">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@500;600;700&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: sticky branded header, then one working column — day tabs, meals, snacks, water, drinks, energy, send. */
+:root{
+  --bg:#FBF7F6; --surface:#FFFFFF; --sunk:#F5EEEC; --ink:#27181C; --muted:#76626A; --line:#ECE1DF;
+  --orange:#FF7112; --pink:#F3516F; --orange-ink:#B84A00; --pink-ink:#C42A4B;
+  --orange-soft:#FFE9DA; --pink-soft:#FDE3E8; --good:#2F8A57; --good-soft:#E3F3E9;
+  --display:"Lexend",ui-sans-serif,system-ui,sans-serif;
+  --body:"Figtree",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#171012; --surface:#21181B; --sunk:#1B1315; --ink:#F6ECEB; --muted:#B49FA5; --line:#3A2B30;
+  --orange:#FF7E2A; --pink:#FF6683; --orange-ink:#FF9C5C; --pink-ink:#FF8AA0;
+  --orange-soft:#3A2214; --pink-soft:#3A1A22; --good:#5CC48A; --good-soft:#16301F; color-scheme:dark}}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;padding-bottom:env(safe-area-inset-bottom,0px)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+[hidden]{display:none!important}
+button,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--orange);outline-offset:2px}
+img{max-width:100%}
+.wrap{max-width:760px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
+header.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:10px}
+.brand{display:flex;align-items:center;gap:14px;min-width:0}
+.brand img{height:48px;width:auto;display:block}
+.brand .sub{font-family:var(--display);font-weight:500;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);border-left:1px solid var(--line);padding-left:14px;line-height:1.3}
+.status{font-size:12.5px;color:var(--muted);white-space:nowrap;display:flex;align-items:center;gap:6px}
+.status .dot{width:7px;height:7px;border-radius:50%;background:var(--good)}
+@media (max-width:400px){.brand .sub{display:none}}
+
+main{display:grid;gap:22px;padding-block:22px 56px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0}
+h1{font-size:26px;font-weight:700;letter-spacing:-.01em;line-height:1.2}
+h2{font-size:17px;font-weight:600}
+.lede{color:var(--muted);margin:6px 0 0;max-width:60ch}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;gap:12px}
+.notice{border-radius:12px;padding:14px;font-size:14px;display:grid;gap:10px}
+.notice.keep{background:var(--orange-soft)}
+.notice.err{background:var(--pink-soft)}
+.notice b{font-family:var(--display);font-weight:600}
+.linkrow{display:flex;gap:8px;flex-wrap:wrap}
+.linkrow input{flex:1 1 220px;font-size:13px;background:var(--surface)}
+
+label.f{display:grid;gap:4px;font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.02em;min-width:0}
+input[type=text],input[type=date],input[type=time],input[type=number],input[type=tel],input[type=url],textarea{width:100%;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:9px 11px;font-size:16px;font-weight:400;color:var(--ink);min-width:0}
+textarea{resize:vertical;min-height:64px}
+input::placeholder,textarea::placeholder{color:var(--muted);opacity:.7}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+
+.who{display:grid;grid-template-columns:1fr 170px;gap:12px}
+@media (max-width:520px){.who{grid-template-columns:1fr}}
+.whoami{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.whoami .k{font-size:13px;color:var(--muted)}
+
+.days{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.daytab{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:10px 12px;text-align:left;cursor:pointer;display:grid;gap:2px;min-width:0}
+.daytab .d{font-family:var(--display);font-weight:600;font-size:15px;display:flex;justify-content:space-between;gap:6px;align-items:center}
+.daytab .dt{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.daytab .bar{height:4px;border-radius:4px;background:var(--sunk);margin-top:6px;overflow:hidden}
+.daytab .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--orange),var(--pink));border-radius:4px}
+.daytab[aria-selected="true"]{border-color:var(--orange);box-shadow:0 0 0 1px var(--orange)}
+.sent{font-family:var(--body);font-size:11px;font-weight:700;color:var(--good);background:var(--good-soft);border-radius:999px;padding:1px 7px}
+
+.sec{display:grid;gap:12px}
+.sechead{display:flex;align-items:baseline;justify-content:space-between;gap:12px;border-bottom:2px solid var(--ink);padding-bottom:6px;flex-wrap:wrap}
+.sechead .k{font-size:12px;color:var(--muted)}
+.meals{display:grid;gap:12px}
+.meal{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:grid;gap:10px}
+.meal .mh{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.meal h3{font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px}
+.meal h3 .pip{width:9px;height:9px;border-radius:50%;border:2px solid var(--line)}
+.meal.filled h3 .pip{background:var(--orange);border-color:var(--orange)}
+.row2{display:grid;grid-template-columns:130px minmax(0,1fr);gap:10px}
+@media (max-width:460px){.row2{grid-template-columns:1fr}}
+.scale{display:flex;flex-wrap:wrap;gap:6px}
+.scale button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 11px;font-size:13px;font-weight:500;cursor:pointer;color:var(--ink)}
+.scale button[aria-pressed="true"]{background:var(--orange);border-color:var(--orange);color:#fff}
+.hint{font-size:12px;color:var(--muted);font-weight:500}
+.link{border:0;background:none;color:var(--pink-ink);font-weight:600;cursor:pointer;padding:4px 0;font-size:13.5px}
+.ghost{border:1px dashed var(--line);background:none;border-radius:12px;padding:12px;font-weight:600;color:var(--orange-ink);cursor:pointer;width:100%}
+.ghost:hover{border-color:var(--orange)}
+.btn{border:0;background:var(--ink);color:var(--bg);border-radius:10px;padding:11px 16px;font-weight:600;cursor:pointer;font-size:15px}
+.btn.alt{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
+.btn.brand{background:var(--orange);color:#fff}
+.btn:disabled{opacity:.6;cursor:default}
+
+.oz{font-family:var(--display);font-size:40px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;color:var(--orange-ink)}
+.oz small{font-size:15px;font-weight:500;color:var(--muted);margin-left:4px}
+.wtop{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.glasses{display:flex;gap:4px;flex-wrap:wrap}
+.glasses span{width:14px;height:20px;border:2px solid var(--line);border-radius:2px 2px 5px 5px;position:relative;overflow:hidden}
+.glasses span.on{border-color:var(--orange)}
+.glasses span.on::after{content:"";position:absolute;inset:30% 0 0;background:var(--orange);opacity:.85}
+.quick{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.quick button{border:1px solid var(--line);background:var(--sunk);border-radius:8px;padding:7px 10px;font-weight:600;font-size:13px;cursor:pointer;font-variant-numeric:tabular-nums}
+.quick .set{margin-left:auto;display:flex;align-items:center;gap:6px}
+.quick .set input{width:88px}
+.drink{display:grid;grid-template-columns:minmax(0,1fr) 84px auto;gap:8px;align-items:center}
+.x{border:0;background:none;color:var(--muted);font-size:20px;cursor:pointer;padding:4px 8px;line-height:1}
+
+.erow{display:grid;grid-template-columns:96px minmax(0,1fr);gap:6px 10px;align-items:center}
+@media (max-width:520px){.erow{grid-template-columns:1fr}}
+.erow .lab{font-weight:600;font-size:14px}
+.erow .lab span{display:block;font-size:12px;color:var(--muted);font-weight:500}
+.ten{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:4px}
+.ten button{border:1px solid var(--line);background:var(--surface);border-radius:8px;height:38px;font-weight:600;font-size:14px;cursor:pointer;font-variant-numeric:tabular-nums;color:var(--ink);padding:0}
+.ten button[aria-pressed="true"]{color:#fff;border-color:transparent}
+.ends{display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted);grid-column:2}
+@media (max-width:520px){.ends{grid-column:1}}
+
+.send{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;gap:10px}
+.send.done{border-color:color-mix(in srgb,var(--good) 45%,var(--line))}
+.send p{margin:0;font-size:14px;color:var(--muted)}
+.send .missing{color:var(--pink-ink);font-weight:600}
+.send .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+
+.start{max-width:520px}
+.start .card{gap:14px}
+.steps{display:grid;gap:8px;margin:0;padding:0;list-style:none;font-size:14px}
+.steps li{display:grid;grid-template-columns:24px 1fr;gap:8px;align-items:start}
+.steps li b{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--orange-soft);color:var(--orange-ink);font-size:12px}
+.foot{color:var(--muted);font-size:12.5px;text-align:center}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <div class="brand"><img src="/logo.png" alt="Train With Renée" width="335" height="175"><div class="sub">3-Day<br>Food Log</div></div>
+  <div class="status" id="status" role="status" hidden><span class="dot"></span><span id="statusText">Saved on this phone</span></div>
+</div></header>
+
+<div class="wrap">
+
+  <!-- Loading -->
+  <main id="loadingView"><p class="lede">Loading your log…</p></main>
+
+  <!-- Start -->
+  <main id="startView" class="start" hidden>
+    <section>
+      <h1>Your 3-day food log</h1>
+      <p class="lede">For three days, write down everything you eat and drink and rate your energy. Be honest, not perfect. Renée uses this to build your plan, so there are no wrong answers.</p>
+    </section>
+    <ol class="steps">
+      <li><b>1</b><span>Log as you go. Your entries save on this phone automatically.</span></li>
+      <li><b>2</b><span>At the end of each day, tap <strong>Send to Renée</strong>.</span></li>
+      <li><b>3</b><span>Do it three days in a row. Pick two weekdays and one weekend day if you can.</span></li>
+    </ol>
+    <form class="card" id="startForm" novalidate>
+      <label class="f" for="sName">Your name<input type="text" id="sName" autocomplete="name" placeholder="First and last name" required></label>
+      <label class="f" for="sContact">Phone or email<input type="text" id="sContact" autocomplete="email" placeholder="So Renée can reach you" required></label>
+      <label class="f" for="sStart">Day 1 date<input type="date" id="sStart" required></label>
+      <div class="hp" aria-hidden="true"><label for="sCompany">Company</label><input type="text" id="sCompany" tabindex="-1" autocomplete="off"></div>
+      <div class="notice err" id="startErr" hidden></div>
+      <button class="btn brand" type="submit" id="startBtn">Start my log</button>
+    </form>
+  </main>
+
+  <!-- Bad link -->
+  <main id="badView" hidden>
+    <section>
+      <h1>We couldn't open that log</h1>
+      <p class="lede" id="badMsg">That link isn't valid. Ask Renée to send it again.</p>
+    </section>
+    <div><button class="btn alt" id="startOver">Start a new log</button></div>
+  </main>
+
+  <!-- Log -->
+  <main id="logView" hidden>
+    <div class="notice keep" id="linkCard" hidden>
+      <div><b>Save your private link.</b> It's how you get back to your log, and only you have it. On iPhone tap Share, then Add to Home Screen. On Android tap ⋮, then Add to Home screen.</div>
+      <div class="linkrow"><input type="url" id="myLink" readonly aria-label="Your private link"><button class="btn alt" id="copyLink" type="button">Copy link</button></div>
+      <button class="link" id="hideLink" type="button" style="justify-self:start">I've saved it</button>
+    </div>
+
+    <section class="whoami">
+      <h1 id="hello">Your food log</h1>
+      <span class="k" id="startInfo"></span>
+    </section>
+
+    <div class="days" role="tablist" id="days" aria-label="Days"></div>
+
+    <section class="sec">
+      <div class="sechead"><h2>Meals</h2><span class="k">Hunger: 1 starving · 5 stuffed</span></div>
+      <div class="meals" id="meals"></div>
+    </section>
+
+    <section class="sec">
+      <div class="sechead"><h2>Snacks</h2><span class="k" id="snackCount"></span></div>
+      <div class="meals" id="snacks"></div>
+      <button class="ghost" id="addSnack" type="button">+ Add a snack</button>
+    </section>
+
+    <section class="sec">
+      <div class="sechead"><h2>Water</h2><span class="k">fluid ounces</span></div>
+      <div class="card">
+        <div class="wtop">
+          <div class="oz" id="ozTotal">0<small>oz</small></div>
+          <div class="glasses" id="glasses" aria-hidden="true"></div>
+        </div>
+        <div class="quick" id="quick">
+          <button type="button" data-add="8">+8 oz</button><button type="button" data-add="16">+16 oz</button><button type="button" data-add="24">+24 oz</button><button type="button" data-add="32">+32 oz</button><button type="button" data-add="-8">−8 oz</button>
+          <span class="set"><label class="hint" for="ozSet">Total</label><input type="number" id="ozSet" min="0" step="1" inputmode="numeric"></span>
+        </div>
+        <div class="hint">Each glass is 8 oz. A standard water bottle is about 16.9 oz.</div>
+      </div>
+    </section>
+
+    <section class="sec">
+      <div class="sechead"><h2>Other drinks</h2><span class="k">coffee, soda, juice, alcohol, shakes</span></div>
+      <div id="drinks" style="display:grid;gap:8px"></div>
+      <button class="ghost" id="addDrink" type="button">+ Add a drink</button>
+    </section>
+
+    <section class="sec">
+      <div class="sechead"><h2>Energy level</h2><span class="k">1 drained · 10 fully charged</span></div>
+      <div class="card" id="energy"></div>
+      <label class="f" for="notes">Anything else about today? Sleep, workout, stress, cravings.<textarea id="notes" placeholder="e.g. Slept 6 hrs, leg day at 5pm, big sugar craving around 3"></textarea></label>
+    </section>
+
+    <section class="send" id="sendBox" aria-live="polite">
+      <h2 id="sendTitle">Send Day 1 to Renée</h2>
+      <p id="sendMsg"></p>
+      <div class="notice err" id="sendErr" hidden></div>
+      <div class="row"><button class="btn brand" id="sendBtn" type="button">Send Day 1</button><button class="link" id="nextDay" type="button" hidden>Go to Day 2 →</button></div>
+    </section>
+
+    <p class="foot">Entries save on this phone as you type. Days you've sent can be opened from your private link on any device.</p>
+  </main>
+</div>
+
+<script>
+(function(){
+"use strict";
+const MEALS=[["breakfast","Breakfast"],["lunch","Lunch"],["dinner","Dinner"]];
+const HUNGER=["Starving","Hungry","Neutral","Satisfied","Stuffed"];
+const ENERGY=[["am","Morning","wake – noon"],["mid","Afternoon","noon – 5pm"],["pm","Evening","5pm – bed"]];
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const meal=()=>({food:"",time:"",portion:"",hunger:null});
+const day=()=>({meals:{breakfast:meal(),lunch:meal(),dinner:meal()},snacks:[],water:0,drinks:[],energy:{am:null,mid:null,pm:null},notes:"",submittedAt:null,sentHash:null});
+const isoToday=()=>{const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);};
+
+const ls={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v);return true}catch(e){return false}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
+
+let token=null, state=null, cur=0, canStore=true;
+
+function show(view){["loadingView","startView","badView","logView"].forEach(v=>$(v).hidden=v!==view);$("status").hidden=view!=="logView";}
+
+function normDay(src){const d=day();if(!src||typeof src!=="object")return d;
+  for(const [k] of MEALS)d.meals[k]=Object.assign(meal(),src.meals?.[k]||{});
+  d.snacks=Array.isArray(src.snacks)?src.snacks.map(x=>Object.assign(meal(),x)):[];
+  d.water=Number(src.water)||0;
+  d.drinks=Array.isArray(src.drinks)?src.drinks.map(x=>({what:String(x?.what||""),oz:x?.oz??""})):[];
+  d.energy=Object.assign({am:null,mid:null,pm:null},src.energy||{});
+  d.notes=String(src.notes||"");d.submittedAt=src.submittedAt||null;d.sentHash=src.sentHash||null;return d;}
+const content=d=>JSON.stringify({m:d.meals,s:d.snacks,w:d.water,dr:d.drinks,e:d.energy,n:d.notes});
+function hash(s){let h=5381;for(let i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))|0;return String(h);}
+
+function dayDate(i,fmt){const d=new Date((state.start||isoToday())+"T12:00:00");if(isNaN(d))return"";d.setDate(d.getDate()+i);
+  return fmt==="iso"?new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10):d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"});}
+function progress(d){let n=0;for(const [k] of MEALS)if(d.meals[k].food.trim())n++;if(d.water>0)n++;for(const [k] of ENERGY)if(d.energy[k])n++;return n/7;}
+const sentClean=d=>d.submittedAt&&d.sentHash===hash(content(d));
+
+/* ---------- storage ---------- */
+let saveTimer=null;
+function persist(){clearTimeout(saveTimer);saveTimer=setTimeout(()=>{
+  canStore=ls.set("twr-log:"+token,JSON.stringify(state));
+  $("statusText").textContent=canStore?"Saved on this phone":"Not saving — private browsing?";
+},250);}
+
+/* ---------- render ---------- */
+function renderDays(){
+  $("days").innerHTML=state.days.map((d,i)=>`<button type="button" class="daytab" role="tab" aria-selected="${i===cur}" data-day="${i}"><span class="d">Day ${i+1}${d.submittedAt?`<span class="sent">${sentClean(d)?"Sent":"Edited"}</span>`:""}</span><span class="dt">${esc(dayDate(i))}</span><span class="bar"><i style="width:${Math.round(progress(d)*100)}%"></i></span></button>`).join("");
+}
+function mealCard(m,label,path,removable){
+  return `<div class="meal${m.food.trim()?" filled":""}" data-path="${path}">
+    <div class="mh"><h3><span class="pip"></span>${label}</h3>${removable?`<button type="button" class="link" data-remove="${path}">Remove</button>`:""}</div>
+    <label class="f" for="${path}-food">What did you eat?<textarea id="${path}-food" data-f="food" rows="2" placeholder="e.g. 2 scrambled eggs, 1 slice sourdough with butter">${esc(m.food)}</textarea></label>
+    <div class="row2">
+      <label class="f" for="${path}-time">Time<input type="time" id="${path}-time" data-f="time" value="${esc(m.time)}"></label>
+      <label class="f" for="${path}-portion">Portion size<input type="text" id="${path}-portion" data-f="portion" value="${esc(m.portion)}" placeholder="e.g. 1 cup rice, palm-size chicken"></label>
+    </div>
+    <div class="f">Hunger before eating<div class="scale">${HUNGER.map((h,j)=>`<button type="button" data-hunger="${j+1}" aria-pressed="${m.hunger===j+1}">${j+1} ${h}</button>`).join("")}</div></div>
+  </div>`;
+}
+function renderMeals(){const d=state.days[cur];
+  $("meals").innerHTML=MEALS.map(([k,l])=>mealCard(d.meals[k],l,"m-"+k,false)).join("");
+  $("snacks").innerHTML=d.snacks.map((s,i)=>mealCard(s,"Snack "+(i+1),"s-"+i,true)).join("");
+  $("snackCount").textContent=d.snacks.length?d.snacks.length+" logged":"none yet";}
+function renderWater(){const d=state.days[cur];
+  $("ozTotal").innerHTML=`${d.water}<small>oz</small>`;
+  if(document.activeElement!==$("ozSet"))$("ozSet").value=d.water||"";
+  const full=Math.floor(d.water/8),n=Math.min(Math.max(8,full+1),20);
+  $("glasses").innerHTML=Array.from({length:n},(_,i)=>`<span class="${i<full?"on":""}"></span>`).join("");}
+function renderDrinks(){const d=state.days[cur];
+  $("drinks").innerHTML=d.drinks.length?d.drinks.map((x,i)=>`<div class="drink" data-drink="${i}"><input type="text" id="dr-${i}-what" data-df="what" value="${esc(x.what)}" placeholder="e.g. Iced latte with oat milk" aria-label="Drink"><input type="number" id="dr-${i}-oz" data-df="oz" value="${esc(x.oz)}" placeholder="oz" min="0" inputmode="decimal" aria-label="Ounces"><button type="button" class="x" data-rmdrink="${i}" aria-label="Remove drink">×</button></div>`).join(""):`<div class="hint">No other drinks logged for this day.</div>`;}
+const eColor=v=>`color-mix(in srgb, var(--orange) ${Math.round((v-1)/9*100)}%, var(--pink))`;
+function renderEnergy(){const d=state.days[cur];
+  $("energy").innerHTML=ENERGY.map(([k,l,s])=>`<div class="erow"><div class="lab">${l}<span>${s}</span></div><div class="ten" data-energy="${k}">${Array.from({length:10},(_,i)=>{const v=i+1,on=d.energy[k]===v;return `<button type="button" data-v="${v}" aria-pressed="${on}" aria-label="${l} energy ${v}"${on?` style="background:${eColor(v)}"`:""}>${v}</button>`}).join("")}</div><div class="ends"><span>Drained</span><span>Fully charged</span></div></div>`).join("");
+  $("notes").value=d.notes;}
+function missing(d){const m=[];for(const [k,l] of MEALS)if(!d.meals[k].food.trim())m.push(l.toLowerCase());if(!d.water)m.push("water");if(ENERGY.some(([k])=>!d.energy[k]))m.push("energy ratings");return m;}
+let confirmMissing=false;
+function renderSend(){const d=state.days[cur],n=cur+1;
+  $("sendTitle").textContent=`Send Day ${n} to Renée`;
+  $("sendErr").hidden=true;
+  const box=$("sendBox"),btn=$("sendBtn"),next=$("nextDay");
+  next.hidden=true;btn.disabled=false;
+  if(d.submittedAt){
+    const when=new Date(d.submittedAt).toLocaleString(undefined,{weekday:"short",hour:"numeric",minute:"2-digit"});
+    if(sentClean(d)){box.classList.add("done");$("sendMsg").textContent=`Sent ${when}. Renée has Day ${n}.`;btn.textContent="Sent";btn.disabled=true;
+      if(n<3){next.hidden=false;next.textContent=`Go to Day ${n+1} →`;}
+      else{$("sendMsg").textContent=`Sent ${when}. That's all three days. Renée will review your log and reach out.`;}}
+    else{box.classList.remove("done");$("sendMsg").textContent=`You've changed Day ${n} since you sent it on ${when}.`;btn.textContent="Send my changes";}
+    return;}
+  box.classList.remove("done");
+  const m=missing(d);
+  if(confirmMissing&&m.length){$("sendMsg").innerHTML=`<span class="missing">Still empty: ${esc(m.join(", "))}.</span> If you skipped them, that's fine — send anyway.`;btn.textContent="Send anyway";}
+  else{$("sendMsg").textContent="Send this day once it's over, after your last meal or drink. You can still change it and send again.";btn.textContent=`Send Day ${n}`;}
+}
+function renderAll(){
+  $("hello").textContent=state.name?`${state.name.split(" ")[0]}'s food log`:"Your food log";
+  $("startInfo").textContent=state.start?`Day 1: ${dayDate(0)}`:"";
+  renderDays();renderMeals();renderWater();renderDrinks();renderEnergy();confirmMissing=false;renderSend();}
+
+/* ---------- edits ---------- */
+function edited(){persist();renderDays();if(!$("sendBtn").matches(":focus"))renderSend();}
+$("days").addEventListener("click",e=>{const b=e.target.closest("[data-day]");if(!b)return;cur=+b.dataset.day;ls.set("twr-day:"+token,String(cur));renderAll();window.scrollTo({top:0,behavior:"smooth"});});
+const mealAt=p=>p.startsWith("m-")?state.days[cur].meals[p.slice(2)]:state.days[cur].snacks[+p.slice(2)];
+["meals","snacks"].forEach(id=>{
+  $(id).addEventListener("input",e=>{const f=e.target.dataset.f;if(!f)return;const card=e.target.closest(".meal"),m=mealAt(card.dataset.path);m[f]=e.target.value;if(f==="food")card.classList.toggle("filled",!!m.food.trim());edited();});
+  $(id).addEventListener("click",e=>{
+    const h=e.target.closest("[data-hunger]");
+    if(h){const card=h.closest(".meal"),m=mealAt(card.dataset.path),v=+h.dataset.hunger;m.hunger=m.hunger===v?null:v;card.querySelectorAll("[data-hunger]").forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.hunger===m.hunger)));edited();return;}
+    const r=e.target.closest("[data-remove]");if(r){state.days[cur].snacks.splice(+r.dataset.remove.slice(2),1);renderMeals();edited();}
+  });
+});
+$("addSnack").addEventListener("click",()=>{state.days[cur].snacks.push(meal());renderMeals();const t=$("s-"+(state.days[cur].snacks.length-1)+"-food");if(t)t.focus();edited();});
+$("quick").addEventListener("click",e=>{const b=e.target.closest("[data-add]");if(!b)return;const d=state.days[cur];d.water=Math.max(0,d.water+Number(b.dataset.add));renderWater();edited();});
+$("ozSet").addEventListener("input",e=>{state.days[cur].water=Math.max(0,Math.round(Number(e.target.value)||0));renderWater();edited();});
+$("addDrink").addEventListener("click",()=>{state.days[cur].drinks.push({what:"",oz:""});renderDrinks();const t=$("dr-"+(state.days[cur].drinks.length-1)+"-what");if(t)t.focus();edited();});
+$("drinks").addEventListener("input",e=>{const f=e.target.dataset.df;if(!f)return;const i=+e.target.closest("[data-drink]").dataset.drink;state.days[cur].drinks[i][f]=e.target.value;edited();});
+$("drinks").addEventListener("click",e=>{const b=e.target.closest("[data-rmdrink]");if(!b)return;state.days[cur].drinks.splice(+b.dataset.rmdrink,1);renderDrinks();edited();});
+$("energy").addEventListener("click",e=>{const b=e.target.closest("[data-v]");if(!b)return;const k=b.closest("[data-energy]").dataset.energy,v=+b.dataset.v,d=state.days[cur];d.energy[k]=d.energy[k]===v?null:v;
+  b.closest(".ten").querySelectorAll("button").forEach(x=>{const on=+x.dataset.v===d.energy[k];x.setAttribute("aria-pressed",String(on));x.style.background=on?eColor(+x.dataset.v):"";});edited();});
+$("notes").addEventListener("input",e=>{state.days[cur].notes=e.target.value;edited();});
+
+/* ---------- send ---------- */
+async function api(path,opts){
+  let res;try{res=await fetch(path,opts);}catch(e){throw new Error("You're offline. Your entries are saved on this phone — try again when you have signal.");}
+  let data={};try{data=await res.json();}catch(e){}
+  if(!res.ok){const err=new Error(data.error||"Something went wrong. Try again in a minute.");err.status=res.status;throw err;}
+  return data;}
+$("sendBtn").addEventListener("click",async()=>{
+  const d=state.days[cur],n=cur+1;
+  if(!d.submittedAt&&missing(d).length&&!confirmMissing){confirmMissing=true;renderSend();return;}
+  const btn=$("sendBtn");btn.disabled=true;btn.textContent="Sending…";$("sendErr").hidden=true;
+  try{
+    const r=await api("/api/submit",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({t:token,day:n,date:dayDate(cur,"iso"),data:d})});
+    d.submittedAt=r.submittedAt;d.sentHash=hash(content(d));confirmMissing=false;persist();renderDays();renderSend();
+  }catch(err){btn.disabled=false;btn.textContent=d.submittedAt?"Send my changes":`Send Day ${n}`;$("sendErr").textContent=err.message;$("sendErr").hidden=false;}
+});
+$("nextDay").addEventListener("click",()=>{cur=Math.min(2,cur+1);ls.set("twr-day:"+token,String(cur));renderAll();window.scrollTo({top:0,behavior:"smooth"});});
+
+/* ---------- private link ---------- */
+const linkFor=t=>location.origin+"/?t="+t;
+function showLinkCard(){$("myLink").value=linkFor(token);$("linkCard").hidden=ls.get("twr-linksaved:"+token)==="1";}
+$("copyLink").addEventListener("click",async()=>{const inp=$("myLink");
+  try{await navigator.clipboard.writeText(inp.value);$("copyLink").textContent="Copied";}
+  catch(e){inp.focus();inp.select();$("copyLink").textContent="Select & copy";}
+  setTimeout(()=>{$("copyLink").textContent="Copy link";},2500);});
+$("hideLink").addEventListener("click",()=>{ls.set("twr-linksaved:"+token,"1");$("linkCard").hidden=true;});
+
+/* ---------- start ---------- */
+$("sStart").value=isoToday();
+$("startForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const name=$("sName").value.trim(),contact=$("sContact").value.trim(),start=$("sStart").value;
+  const err=$("startErr");err.hidden=true;
+  if(!name||!contact){err.textContent=!name?"Enter your name to start.":"Enter a phone number or email so Renée can reach you.";err.hidden=false;return;}
+  const btn=$("startBtn");btn.disabled=true;btn.textContent="Starting…";
+  try{
+    const r=await api("/api/start",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({name,contact,start,company:$("sCompany").value})});
+    token=r.token;state={name,contact,start,days:[day(),day(),day()]};cur=0;
+    ls.set("twr-token",token);history.replaceState(null,"","/?t="+token);persist();
+    show("logView");renderAll();showLinkCard();window.scrollTo(0,0);
+  }catch(ex){err.textContent=ex.message;err.hidden=false;btn.disabled=false;btn.textContent="Start my log";}
+});
+$("startOver").addEventListener("click",()=>{ls.del("twr-token");history.replaceState(null,"","/");show("startView");});
+
+/* ---------- boot ---------- */
+(async function boot(){
+  const fromUrl=new URLSearchParams(location.search).get("t");
+  token=fromUrl||ls.get("twr-token");
+  if(!token||!/^[A-Za-z0-9_-]{20,40}$/.test(token)){token=null;show("startView");return;}
+  ls.set("twr-token",token);
+  if(!fromUrl)history.replaceState(null,"","/?t="+token);
+  let local=null;try{local=JSON.parse(ls.get("twr-log:"+token)||"null");}catch(e){}
+  if(local&&Array.isArray(local.days)){
+    state={name:local.name||"",contact:local.contact||"",start:local.start||"",days:[0,1,2].map(i=>normDay(local.days[i]))};
+  }else{
+    try{
+      const r=await api("/api/log?t="+encodeURIComponent(token));
+      state={name:r.name,contact:r.contact,start:r.start,days:[1,2,3].map(n=>{const d=normDay(r.days?.[n]);if(d.submittedAt)d.sentHash=hash(content(d));return d;})};
+      persist();
+    }catch(err){
+      if(err.status===404){ls.del("twr-token");$("badMsg").textContent=err.message;show("badView");}
+      else{$("badMsg").textContent=err.message;show("badView");$("startOver").hidden=true;}
+      return;
+    }
+  }
+  const saved=Number(ls.get("twr-day:"+token));
+  cur=Number.isInteger(saved)&&saved>=0&&saved<3?saved:Math.max(0,state.days.findIndex(d=>!sentClean(d)));
+  if(cur<0)cur=2;
+  show("logView");renderAll();showLinkCard();
+  if(!ls.set("twr-probe","1")){$("statusText").textContent="Not saving — private browsing?";}
+})();
+})();
+</script>
+</body>
+</html>
