@@ -384,7 +384,8 @@ $("sendBtn").addEventListener("click",async()=>{
 $("nextDay").addEventListener("click",()=>{cur=Math.min(2,cur+1);ls.set("twr-day:"+token,String(cur));renderAll();window.scrollTo({top:0,behavior:"smooth"});});
 
 /* ---------- private link ---------- */
-const linkFor=t=>location.origin+"/?t="+t;
+const MAIN_HOST=location.hostname.replace(/^[0-9a-f]{8}\.(?=[^.]+\.pages\.dev$)/,"");
+const linkFor=t=>location.protocol+"//"+MAIN_HOST+"/?t="+t;
 function showLinkCard(){$("myLink").value=linkFor(token);$("linkCard").hidden=ls.get("twr-linksaved:"+token)==="1";}
 $("copyLink").addEventListener("click",async()=>{const inp=$("myLink");
   try{await navigator.clipboard.writeText(inp.value);$("copyLink").textContent="Copied";}

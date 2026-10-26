@@ -16,7 +16,10 @@ export async function onRequestPost({ request, env }) {
   if (!contact) return json({ error: "Enter a phone number or email so Renée can reach you." }, 400);
 
   const token = newToken();
-  const origin = new URL(request.url).origin;
+  // Always link to the main address, never a one-deploy preview like abc123de.site.pages.dev
+  const u = new URL(request.url);
+  const host = u.hostname.replace(/^[0-9a-f]{8}\.(?=[^.]+\.pages\.dev$)/, "");
+  const origin = `${u.protocol}//${host}`;
   const fields = {
     "Name": name,
     "Contact": contact,
