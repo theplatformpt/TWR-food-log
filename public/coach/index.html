@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Coach View · Train With Renée</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#21181B" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="/favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-title" content="Coach">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@500;600;700&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: sticky header; roster list (summary first), then a client page with averages up top and three day columns below. */
+:root{
+  --bg:#FBF7F6; --surface:#FFFFFF; --sunk:#F5EEEC; --ink:#27181C; --muted:#76626A; --line:#ECE1DF;
+  --orange:#FF7112; --pink:#F3516F; --orange-ink:#B84A00; --pink-ink:#C42A4B;
+  --orange-soft:#FFE9DA; --pink-soft:#FDE3E8; --good:#2F8A57; --good-soft:#E3F3E9;
+  --display:"Lexend",ui-sans-serif,system-ui,sans-serif;
+  --body:"Figtree",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#171012; --surface:#21181B; --sunk:#1B1315; --ink:#F6ECEB; --muted:#B49FA5; --line:#3A2B30;
+  --orange:#FF7E2A; --pink:#FF6683; --orange-ink:#FF9C5C; --pink-ink:#FF8AA0;
+  --orange-soft:#3A2214; --pink-soft:#3A1A22; --good:#5CC48A; --good-soft:#16301F; color-scheme:dark}}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;padding-bottom:env(safe-area-inset-bottom,0px)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+[hidden]{display:none!important}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--orange);outline-offset:2px}
+.wrap{max-width:1080px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
+header.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:10px}
+.brand{display:flex;align-items:center;gap:14px;min-width:0}
+.brand img{height:44px;width:auto;display:block}
+.brand .sub{font-family:var(--display);font-weight:500;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);border-left:1px solid var(--line);padding-left:14px;line-height:1.3}
+.hbtns{display:flex;gap:8px;align-items:center}
+main{display:grid;gap:18px;padding-block:22px 56px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0}
+h1{font-size:26px;font-weight:700;letter-spacing:-.01em;line-height:1.2}
+h2{font-size:17px;font-weight:600}
+h3{font-size:14px;font-weight:600}
+.muted{color:var(--muted)}
+.small{font-size:12.5px}
+.btn{border:0;background:var(--ink);color:var(--bg);border-radius:10px;padding:9px 14px;font-weight:600;cursor:pointer;font-size:14px}
+.btn.alt{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
+.btn.brand{background:var(--orange);color:#fff}
+.btn:disabled{opacity:.6;cursor:default}
+.link{border:0;background:none;color:var(--pink-ink);font-weight:600;cursor:pointer;padding:4px 0;font-size:14px}
+input[type=password],input[type=search],input[type=text]{width:100%;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:9px 11px;font-size:16px;color:var(--ink);min-width:0}
+.err{background:var(--pink-soft);border-radius:10px;padding:10px 12px;font-size:14px}
+@media (max-width:420px){.brand .sub{display:none}}
+
+/* login */
+.login{max-width:400px;margin:6vh auto 0;display:grid;gap:14px}
+.login form{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;gap:12px}
+label.f{display:grid;gap:4px;font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.02em}
+
+/* roster */
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media (max-width:640px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.kpi b{display:block;font-family:var(--display);font-size:24px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1}
+.kpi span{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-weight:600}
+.tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.tools input{flex:1 1 220px;max-width:340px}
+.seg{display:flex;gap:4px;background:var(--sunk);border-radius:999px;padding:3px}
+.seg button{border:0;background:none;padding:6px 12px;border-radius:999px;font-weight:600;font-size:13px;color:var(--muted);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.list{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.row{display:grid;grid-template-columns:minmax(0,1.6fr) 120px 90px 90px 110px;gap:12px;align-items:center;padding:12px 16px;border-top:1px solid var(--line);cursor:pointer;text-align:left;width:100%;background:none;border-left:0;border-right:0;border-bottom:0;color:inherit}
+.row:first-child{border-top:0}
+.row:hover{background:var(--sunk)}
+.row.head{cursor:default;background:var(--sunk);font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:700;padding-block:8px}
+.row .nm{font-weight:600;font-size:15px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .nm small{display:block;font-weight:400;font-size:12.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis}
+.num{font-variant-numeric:tabular-nums;font-weight:600}
+.pips{display:flex;gap:4px}
+.pips i{width:22px;height:8px;border-radius:4px;background:var(--sunk);border:1px solid var(--line)}
+.pips i.on{background:var(--orange);border-color:var(--orange)}
+.chip{display:inline-block;font-size:11.5px;font-weight:700;border-radius:999px;padding:2px 9px;white-space:nowrap}
+.chip.done{background:var(--good-soft);color:var(--good)}
+.chip.part{background:var(--orange-soft);color:var(--orange-ink)}
+.chip.none{background:var(--sunk);color:var(--muted)}
+@media (max-width:720px){
+  .row{grid-template-columns:minmax(0,1fr) auto;gap:4px 12px}
+  .row.head{display:none}
+  .row .c-water,.row .c-energy{display:none}
+  .row .nm{grid-row:1;grid-column:1}
+  .row .c-pips{grid-row:1;grid-column:2;justify-self:end;align-self:start;padding-top:6px}
+  .row .c-last{grid-row:2;grid-column:1;font-size:12.5px;color:var(--muted)}
+  .row .c-chip{grid-row:2;grid-column:2;justify-self:end}
+}
+.empty{padding:28px 18px;text-align:center;color:var(--muted)}
+.empty h3{color:var(--ink);font-size:16px;margin-bottom:4px}
+
+/* client */
+.chead{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.meta{display:flex;gap:6px 14px;flex-wrap:wrap;font-size:13.5px;color:var(--muted)}
+.meta b{color:var(--ink);font-weight:600}
+.summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media (max-width:720px){.summary{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:grid;gap:10px;align-content:start;min-width:0}
+.panel .lab{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-weight:700}
+.big{font-family:var(--display);font-size:28px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1}
+.big small{font-size:14px;font-weight:500;color:var(--muted);margin-left:4px}
+.ebars{display:grid;gap:6px}
+.ebar{display:grid;grid-template-columns:76px minmax(0,1fr) 30px;gap:8px;align-items:center;font-size:13px}
+.ebar .track{height:10px;border-radius:5px;background:var(--sunk);overflow:hidden}
+.ebar .track i{display:block;height:100%;border-radius:5px;background:linear-gradient(90deg,var(--pink),var(--orange))}
+.ebar .v{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.days{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:start}
+@media (max-width:900px){.days{grid-template-columns:1fr}}
+.day{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;min-width:0}
+.day .dh{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:12px 14px;border-bottom:1px solid var(--line);background:var(--sunk)}
+.day .dh h2{font-size:16px}
+.day .db{padding:4px 14px 14px;display:grid}
+.item{padding:10px 0;border-top:1px solid var(--line);display:grid;gap:3px}
+.item:first-child{border-top:0}
+.item .k{display:flex;justify-content:space-between;gap:8px;font-size:11.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:700}
+.item .k .t{text-transform:none;letter-spacing:0;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+.item .food{white-space:pre-wrap;overflow-wrap:anywhere}
+.item .sub{font-size:12.5px;color:var(--muted)}
+.hunger{display:inline-block;font-size:11.5px;font-weight:700;border-radius:999px;padding:1px 8px;background:var(--orange-soft);color:var(--orange-ink);margin-left:4px}
+.hunger.h1{background:var(--pink-soft);color:var(--pink-ink)}
+.notsent{padding:22px 14px;color:var(--muted);text-align:center;font-size:14px}
+.trio{display:flex;gap:6px}
+.trio span{flex:1;text-align:center;border-radius:8px;background:var(--sunk);padding:5px 0;font-size:12px;color:var(--muted)}
+.trio span b{display:block;font-family:var(--display);font-size:17px;color:var(--ink);font-variant-numeric:tabular-nums}
+.copyrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.copyrow input{flex:1 1 220px;font-size:13px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="brand" href="/coach/" style="text-decoration:none;color:inherit"><img src="/logo.png" alt="Train With Renée" width="335" height="175"><span class="sub">Coach<br>View</span></a>
+  <div class="hbtns" id="hbtns" hidden>
+    <button class="btn alt" id="refresh" type="button">Refresh</button>
+    <button class="link" id="signout" type="button">Sign out</button>
+  </div>
+</div></header>
+
+<div class="wrap">
+  <main id="loading"><p class="muted">Loading…</p></main>
+
+  <main id="loginView" hidden>
+    <div class="login">
+      <div><h1>Coach sign in</h1><p class="muted" style="margin:6px 0 0">See every client's 3-day food log.</p></div>
+      <form id="loginForm">
+        <label class="f" for="pw">Password<input type="password" id="pw" autocomplete="current-password" required></label>
+        <div class="err" id="loginErr" hidden></div>
+        <button class="btn brand" id="loginBtn" type="submit">Sign in</button>
+      </form>
+      <p class="muted small">Clients don't need this. They use <a href="/" style="color:var(--pink-ink)">the food log</a> and their private link.</p>
+    </div>
+  </main>
+
+  <main id="rosterView" hidden>
+    <section class="chead">
+      <div><h1>Client food logs</h1><p class="muted small" id="fetched" style="margin:4px 0 0"></p></div>
+    </section>
+    <div class="kpis" id="kpis"></div>
+    <div class="tools">
+      <input type="search" id="q" placeholder="Search by name, phone or email" aria-label="Search clients">
+      <div class="seg" id="seg">
+        <button type="button" data-f="all" aria-pressed="true">All</button>
+        <button type="button" data-f="progress" aria-pressed="false">In progress</button>
+        <button type="button" data-f="done" aria-pressed="false">Complete</button>
+      </div>
+    </div>
+    <div class="err" id="rosterErr" hidden></div>
+    <div class="list" id="list"></div>
+  </main>
+
+  <main id="clientView" hidden>
+    <div><button class="link" id="back" type="button">← All clients</button></div>
+    <section class="chead">
+      <div style="display:grid;gap:6px;min-width:0">
+        <h1 id="cName"></h1>
+        <div class="meta" id="cMeta"></div>
+      </div>
+      <span id="cChip"></span>
+    </section>
+    <div class="summary" id="cSummary"></div>
+    <div class="days" id="cDays"></div>
+    <div class="panel">
+      <div class="lab">Client's private link</div>
+      <div class="copyrow"><input type="text" id="cLink" readonly aria-label="Client's private link"><button class="btn alt" id="copyLink" type="button">Copy</button></div>
+      <div class="muted small">Text this to the client if they lose their log. To turn it off, clear their Log Token in Airtable.</div>
+    </div>
+  </main>
+</div>
+
+<script>
+(function(){
+"use strict";
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const HUNGER=["Starving","Hungry","Neutral","Satisfied","Stuffed"];
+let clients=[], filter="all", query="";
+
+function show(v){["loading","loginView","rosterView","clientView"].forEach(x=>$(x).hidden=x!==v);$("hbtns").hidden=!(v==="rosterView"||v==="clientView");}
+
+async function api(path,opts){
+  let res;try{res=await fetch(path,Object.assign({credentials:"same-origin"},opts));}catch(e){throw Object.assign(new Error("You're offline. Check your connection and try again."),{status:0});}
+  let data={};try{data=await res.json();}catch(e){}
+  if(!res.ok)throw Object.assign(new Error(data.error||"Something went wrong. Try again."),{status:res.status});
+  return data;
+}
+
+/* helpers */
+const avg=a=>{const v=a.filter(x=>typeof x==="number");return v.length?v.reduce((p,c)=>p+c,0)/v.length:null;};
+const sentDays=c=>[1,2,3].filter(n=>c.days[n]);
+const lastSent=c=>sentDays(c).map(n=>c.days[n].submittedAt).filter(Boolean).sort().pop()||"";
+const activity=c=>lastSent(c)||c.created||"";
+const fmtDate=s=>{if(!s)return"";const d=new Date(s.length===10?s+"T12:00:00":s);return isNaN(d)?"":d.toLocaleDateString(undefined,{month:"short",day:"numeric"});};
+const fmtWhen=s=>{if(!s)return"";const d=new Date(s);return isNaN(d)?"":d.toLocaleString(undefined,{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});};
+const fmtDay=s=>{if(!s)return"";const d=new Date(s+"T12:00:00");return isNaN(d)?"":d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"});};
+function status(c){const n=sentDays(c).length;return n===3?["done","Complete"]:n?["part",`${n} of 3 sent`]:["none","Not started"];}
+const chip=c=>{const [k,l]=status(c);return `<span class="chip ${k}">${l}</span>`;};
+const pips=c=>`<span class="pips" aria-label="${sentDays(c).length} of 3 days sent">${[1,2,3].map(n=>`<i class="${c.days[n]?"on":""}"></i>`).join("")}</span>`;
+const clientWater=c=>avg(sentDays(c).map(n=>c.days[n].water));
+const clientEnergy=c=>avg(sentDays(c).flatMap(n=>{const e=c.days[n].energy;return[e.am,e.mid,e.pm];}));
+
+/* roster */
+function renderRoster(){
+  const n=clients.length, done=clients.filter(c=>sentDays(c).length===3).length;
+  const prog=clients.filter(c=>{const k=sentDays(c).length;return k>0&&k<3;}).length;
+  const week=clients.filter(c=>{const t=Date.parse(activity(c));return t&&Date.now()-t<7*864e5;}).length;
+  $("kpis").innerHTML=[[n,"Clients"],[prog,"In progress"],[done,"Complete"],[week,"Active this week"]].map(([v,l])=>`<div class="kpi"><b>${v}</b><span>${l}</span></div>`).join("");
+  const q=query.trim().toLowerCase();
+  const rows=clients.filter(c=>{const k=sentDays(c).length;
+      if(filter==="done"&&k!==3)return false; if(filter==="progress"&&k===3)return false;
+      return !q||(c.name+" "+c.contact).toLowerCase().includes(q);})
+    .sort((a,b)=>activity(b).localeCompare(activity(a)));
+  if(!n){$("list").innerHTML=`<div class="empty"><h3>No clients yet</h3>When a client starts a log at ${esc(location.host)}, they show up here.</div>`;return;}
+  if(!rows.length){$("list").innerHTML=`<div class="empty">No clients match.</div>`;return;}
+  $("list").innerHTML=`<div class="row head"><span>Client</span><span>Days sent</span><span>Avg water</span><span>Avg energy</span><span>Status</span></div>`+
+    rows.map(c=>{const w=clientWater(c),e=clientEnergy(c),ls=lastSent(c);
+      return `<button type="button" class="row" data-id="${esc(c.id)}">
+        <span class="nm">${esc(c.name||"Unnamed")}<small>${esc(c.contact)}</small></span>
+        <span class="c-pips">${pips(c)}</span>
+        <span class="c-water num">${w==null?"–":Math.round(w)+" oz"}</span>
+        <span class="c-energy num">${e==null?"–":e.toFixed(1)}</span>
+        <span class="c-chip">${chip(c)}</span>
+        <span class="c-last" hidden></span>
+      </button>`;}).join("");
+  // phone-only "last sent" line
+  if(matchMedia("(max-width:720px)").matches){$("list").querySelectorAll(".row[data-id]").forEach(r=>{const c=clients.find(x=>x.id===r.dataset.id),l=r.querySelector(".c-last"),ls=lastSent(c);l.hidden=false;l.textContent=ls?"Last sent "+fmtWhen(ls):c.created?"Started "+fmtDate(c.created):"No days sent yet";});}
+}
+$("list").addEventListener("click",e=>{const r=e.target.closest(".row[data-id]");if(r)openClient(r.dataset.id);});
+$("q").addEventListener("input",e=>{query=e.target.value;renderRoster();});
+$("seg").addEventListener("click",e=>{const b=e.target.closest("[data-f]");if(!b)return;filter=b.dataset.f;$("seg").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));renderRoster();});
+
+/* client */
+function mealItem(label,m){
+  if(!m||(!m.food&&!m.time))return `<div class="item"><div class="k"><span>${label}</span></div><div class="sub">Not logged</div></div>`;
+  const h=m.hunger?`<span class="hunger ${m.hunger===1?"h1":""}">Hunger ${m.hunger} · ${HUNGER[m.hunger-1]}</span>`:"";
+  return `<div class="item"><div class="k"><span>${label}</span><span class="t">${esc(m.time)}</span></div><div class="food">${esc(m.food)||"<span class='sub'>No food entered</span>"}</div>${m.portion||h?`<div class="sub">${esc(m.portion)}${h}</div>`:""}</div>`;
+}
+function dayCard(c,n){
+  const d=c.days[n];
+  const dateLabel=d?.date?fmtDay(d.date):c.start?fmtDay(new Date(new Date(c.start+"T12:00:00").getTime()+(n-1)*864e5).toISOString().slice(0,10)):"";
+  if(!d)return `<article class="day"><div class="dh"><h2>Day ${n}</h2><span class="muted small">${esc(dateLabel)}</span></div><div class="notsent">Not sent yet</div></article>`;
+  const e=d.energy;
+  return `<article class="day"><div class="dh"><h2>Day ${n}</h2><span class="muted small">${esc(dateLabel)}</span></div><div class="db">
+    ${mealItem("Breakfast",d.breakfast)}${mealItem("Lunch",d.lunch)}${mealItem("Dinner",d.dinner)}
+    <div class="item"><div class="k"><span>Snacks</span></div><div class="food">${d.snacks?esc(d.snacks):"<span class='sub'>None</span>"}</div></div>
+    <div class="item"><div class="k"><span>Water</span><span class="t">${d.water==null?"–":d.water+" oz"}</span></div></div>
+    <div class="item"><div class="k"><span>Other drinks</span></div><div class="food">${d.drinks?esc(d.drinks):"<span class='sub'>None</span>"}</div></div>
+    <div class="item"><div class="k"><span>Energy (1–10)</span></div><div class="trio"><span><b>${e.am??"–"}</b>Morning</span><span><b>${e.mid??"–"}</b>Afternoon</span><span><b>${e.pm??"–"}</b>Evening</span></div></div>
+    ${d.notes?`<div class="item"><div class="k"><span>Notes</span></div><div class="food">${esc(d.notes)}</div></div>`:""}
+    <div class="item"><div class="sub">Sent ${esc(fmtWhen(d.submittedAt))}</div></div>
+  </div></article>`;
+}
+function summary(c){
+  const ds=sentDays(c).map(n=>c.days[n]);
+  if(!ds.length)return `<div class="panel" style="grid-column:1/-1"><div class="muted">No days sent yet. Averages appear once Day 1 comes in.</div></div>`;
+  const w=avg(ds.map(d=>d.water));
+  const am=avg(ds.map(d=>d.energy.am)),mid=avg(ds.map(d=>d.energy.mid)),pm=avg(ds.map(d=>d.energy.pm));
+  const hunger=avg(ds.flatMap(d=>[d.breakfast.hunger,d.lunch.hunger,d.dinner.hunger]));
+  const skipped=ds.reduce((k,d)=>k+["breakfast","lunch","dinner"].filter(m=>!d[m].food).length,0);
+  const snacks=ds.reduce((k,d)=>k+(d.snacks?d.snacks.split("\n").filter(Boolean).length:0),0);
+  const bar=(l,v)=>`<div class="ebar"><span>${l}</span><span class="track"><i style="width:${v==null?0:v*10}%"></i></span><span class="v">${v==null?"–":v.toFixed(1)}</span></div>`;
+  return `<div class="panel"><div class="lab">Avg water per day</div><div class="big">${w==null?"–":Math.round(w)}<small>oz</small></div><div class="muted small">Over ${ds.length} day${ds.length>1?"s":""} sent</div></div>
+    <div class="panel"><div class="lab">Energy by time of day</div><div class="ebars">${bar("Morning",am)}${bar("Afternoon",mid)}${bar("Evening",pm)}</div></div>
+    <div class="panel"><div class="lab">Eating pattern</div><div class="muted small" style="display:grid;gap:4px">
+      <span><b style="color:var(--ink)">${skipped}</b> meal${skipped===1?"":"s"} not logged</span>
+      <span><b style="color:var(--ink)">${snacks}</b> snack${snacks===1?"":"s"} logged</span>
+      <span>Avg hunger before meals <b style="color:var(--ink)">${hunger==null?"–":hunger.toFixed(1)}</b> / 5</span></div></div>`;
+}
+function openClient(id,push=true){
+  const c=clients.find(x=>x.id===id);if(!c){show("rosterView");return;}
+  $("cName").textContent=c.name||"Unnamed client";
+  $("cMeta").innerHTML=[c.contact&&`<span><b>${esc(c.contact)}</b></span>`,c.start&&`<span>Day 1: ${esc(fmtDay(c.start))}</span>`,c.created&&`<span>Started ${esc(fmtWhen(c.created))}</span>`].filter(Boolean).join("");
+  $("cChip").innerHTML=chip(c);
+  $("cSummary").innerHTML=summary(c);
+  $("cDays").innerHTML=[1,2,3].map(n=>dayCard(c,n)).join("");
+  $("cLink").value=c.link||"";
+  if(push)history.pushState({c:id},"","#"+encodeURIComponent(id));
+  show("clientView");window.scrollTo(0,0);
+}
+$("back").addEventListener("click",()=>{history.pushState({},"","/coach/");show("rosterView");renderRoster();});
+window.addEventListener("popstate",()=>{const id=decodeURIComponent(location.hash.slice(1));if(id&&clients.length)openClient(id,false);else if(clients.length){show("rosterView");renderRoster();}});
+$("copyLink").addEventListener("click",async()=>{const i=$("cLink");try{await navigator.clipboard.writeText(i.value);$("copyLink").textContent="Copied";}catch(e){i.focus();i.select();}setTimeout(()=>$("copyLink").textContent="Copy",2000);});
+
+/* data */
+async function load(){
+  $("refresh").disabled=true;$("refresh").textContent="Loading…";$("rosterErr").hidden=true;
+  try{
+    const r=await api("/api/coach/data");clients=r.clients||[];
+    $("fetched").textContent="Updated "+fmtWhen(r.fetchedAt);
+    const id=decodeURIComponent(location.hash.slice(1));
+    if(id&&clients.some(c=>c.id===id))openClient(id,false);else{show("rosterView");renderRoster();}
+  }catch(err){
+    if(err.status===401){show("loginView");return;}
+    show("rosterView");$("rosterErr").textContent=err.message;$("rosterErr").hidden=false;
+  }finally{$("refresh").disabled=false;$("refresh").textContent="Refresh";}
+}
+$("refresh").addEventListener("click",load);
+$("signout").addEventListener("click",async()=>{try{await api("/api/coach/login",{method:"DELETE"});}catch(e){}clients=[];history.replaceState({},"","/coach/");show("loginView");});
+
+$("loginForm").addEventListener("submit",async e=>{
+  e.preventDefault();const b=$("loginBtn");b.disabled=true;b.textContent="Signing in…";$("loginErr").hidden=true;
+  try{await api("/api/coach/login",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({password:$("pw").value})});$("pw").value="";await load();}
+  catch(err){$("loginErr").textContent=err.message;$("loginErr").hidden=false;}
+  finally{b.disabled=false;b.textContent="Sign in";}
+});
+
+(async()=>{
+  try{const s=await api("/api/coach/login");if(s.signedIn){await load();return;}
+    if(!s.configured){$("loginErr").textContent="Staff login isn't set up yet. Add STAFF_PASSWORD in Cloudflare (8+ characters), then redeploy.";$("loginErr").hidden=false;}
+  }catch(e){}
+  show("loginView");$("pw").focus();
+})();
+})();
+</script>
+</body>
+</html>

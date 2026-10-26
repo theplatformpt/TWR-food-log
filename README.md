@@ -54,6 +54,7 @@ Renée creates the token (only she should do this):
 |---|---|---|
 | `AIRTABLE_TOKEN` | the `pat…` token | **Encrypt** (Secret) |
 | `AIRTABLE_BASE_ID` | `appwZymle9tI8Cdn2` | Text |
+| `STAFF_PASSWORD` | Renée's coach-view password, 12+ characters | **Encrypt** (Secret) |
 
 4. Choose a project name like `trainwithrenee-log`. The site becomes `https://trainwithrenee-log.pages.dev`.
 5. Click **Save and Deploy**.
@@ -66,9 +67,16 @@ Renée creates the token (only she should do this):
 2. Check that the row shows up in **Day Logs**, linked to the client.
 3. Delete both test rows.
 
-### 5. Renée's view
+### 5. Renée's coach view
 
-In Airtable, add an **Interface → Record review** layout on **Clients**, showing the linked **Day Logs** (Breakfast, Lunch, Dinner, Snacks, Water, Energy, Notes). That's her coach view on desktop or the Airtable phone app. No coach website is needed.
+Open **https://twr-food-log.pages.dev/coach/** and sign in with `STAFF_PASSWORD`. She stays signed in on that device for 30 days. On a phone, Share → Add to Home Screen makes it an app icon.
+
+- The client list shows days sent, average water, average energy and status, with search and In progress / Complete filters.
+- Tapping a client opens their averages (water, energy by time of day, eating pattern), all three days side by side, and their private link to re-send.
+- Each load or Refresh uses about 2 Airtable calls per 100 clients. Checking 10 times a day comes to about 600 calls a month, so it fits the free 1,000 with normal client traffic. If it ever gets tight, check less often.
+- To lock everyone out (for example, if the password got shared), change `STAFF_PASSWORD` in Cloudflare and retry the latest deployment.
+
+Airtable is still the place to edit or delete records.
 
 ---
 
@@ -98,6 +106,8 @@ functions/api/start.js     POST: create a client + private link
 functions/api/submit.js    POST: send one day to Airtable
 functions/api/log.js       GET: reload sent days on a new device
 functions/api/setup.js     GET: one-time table creation (needs SETUP_KEY)
+functions/api/coach/*      staff login + data for /coach/
+public/coach/index.html    Renée's coach view
 functions/api/_lib.js      shared Airtable helpers
 ```
 
